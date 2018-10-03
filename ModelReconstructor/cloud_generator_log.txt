@@ -1,1 +1,1 @@
-dir: /Users/simba/Desktop/ModelReconstructor/../Pre_Data/data/depths
+dir: I:\Data\Sketch-based-High-Resolution-3D-Volumetric-Model-Reconstruction-via-Multi-View-Carving\ModelReconstructor\..\ShapeNet_Data\depths

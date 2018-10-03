@@ -7,8 +7,8 @@ PointCloudGenerator generator;
 PointCloud pointCloud;
 PShape cloudShape;
 
-String depthPath = "../Data/depths";
-String cloudPath = "../Data/clouds";
+String depthPath = "..\\ShapeNet_Data\\depths";
+String cloudPath = "..\\ShapeNet_Data\\clouds";
 Boolean saveObj = false;
 
 void setup() {

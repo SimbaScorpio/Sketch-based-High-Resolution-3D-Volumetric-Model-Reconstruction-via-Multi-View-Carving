@@ -14,9 +14,9 @@ class PointCloudGenerator {
   int currentNameIndex;
   
   PointCloudGenerator(String directory) {
-    directory = sketchPath() + '/' + directory;
+    directory = sketchPath() + '\\' + directory;
     output = createWriter("cloud_generator_log.txt");
-    output.print("dir: " + directory + "\n");
+    output.print("dir: " + directory + "\r\n");
     
     filter = new java.io.FilenameFilter() {
       boolean accept(File dir, String name) {
@@ -77,7 +77,7 @@ class PointCloudGenerator {
   ArrayList<PVector> reconstruct(String modelPath) {
     ArrayList<PVector> allPoints = new ArrayList<PVector>();
     for (int i = 0; i < 6; ++i) {
-      String viewPath = modelPath + "/" + i + ".png";
+      String viewPath = modelPath + "\\" + i + ".png";
       ArrayList<PVector> viewPoints = pointsFromView(viewPath);
       registration(viewPoints, i);
       allPoints.addAll(viewPoints);
@@ -186,8 +186,8 @@ class PointCloudGenerator {
   void save(String directory, String type, String name, ArrayList<PVector> vectors) {
     if (vectors == null) { return; }
     
-    directory = sketchPath() + '/' + directory;
-    File obj = new File(directory + "/" + type + "/" + name);
+    directory = sketchPath() + '\\' + directory;
+    File obj = new File(directory + "\\" + type + "\\" + name);
     obj.getParentFile().mkdirs();
     try { 
       obj.createNewFile();
@@ -207,6 +207,6 @@ class PointCloudGenerator {
     } catch (IOException ex) { 
        System.err.format("IOException: %s%n", ex);
     }
-    print("save: " + directory + "/" + type + "/" + name + "\n");
+    print("save: " + directory + "\\" + type + "\\" + name + "\n");
   }
 }

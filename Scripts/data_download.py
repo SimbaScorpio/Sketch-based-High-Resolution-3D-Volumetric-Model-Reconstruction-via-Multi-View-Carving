@@ -6,7 +6,7 @@ from multiprocessing import Pool
 
 
 file_list = 'binvox_file_locations.txt'
-data_path = '../Data/objects/'
+data_path = '../ShapeNet_Data/objects/'
 http_path = 'http://shapenet.cs.stanford.edu/shapenet/obj-zip/ShapeNetCore.v1/'
 wanted_objects = ['chair']
 max_num = 10

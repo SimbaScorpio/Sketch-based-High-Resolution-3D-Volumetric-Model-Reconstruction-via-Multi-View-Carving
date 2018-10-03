@@ -1,8 +1,8 @@
 // Model class holding 3d informations
 class Model {
   PShape shape;   // processing 3d shape
-  String name;    // object name
-  String type;    // object class
+  String name = "Default.obj";    // object name
+  String type = "Default";        // object class
   float minX, minY, minZ;
   float maxX, maxY, maxZ;
 }
@@ -11,7 +11,7 @@ class Model {
 // Usage:
 // * loader = new ModelLoader(dataPath)
 // 1. model = loader.next() enumerate all files in 'dataPath' directory
-// 2. model = loader.loadMdel(modelPath) load specific model under 'modelPath'
+// 2. model = loader.loadModel(modelPath) load specific model under 'modelPath'
 class ModelLoader {
   PrintWriter output;
   java.io.FilenameFilter objFilter;
@@ -22,9 +22,9 @@ class ModelLoader {
   int currentNameIndex;
 
   ModelLoader(String directory) {
-    directory = sketchPath() + '/' + directory;
+    directory = sketchPath() + '\\' + directory;
     output = createWriter("model_loader_log.txt");
-    output.print("dir: " + directory + "\n");
+    output.print("dir: " + directory + "\r\n");
 
     objFilter = new java.io.FilenameFilter() {
       boolean accept(File dir, String name) {
@@ -51,7 +51,6 @@ class ModelLoader {
       output.print("error dir: " + directory);
     }
     output.flush();
-    output.close();
   }
 
   Model next() {
@@ -59,6 +58,11 @@ class ModelLoader {
       return null;
     }
     File obj = currentClassFiles[currentNameIndex];
+    
+    print("class: ", currentClassIndex+1, " / ", classes.length, "\t");
+    print("object: ", currentNameIndex+1, " / ", currentClassFiles.length, "\t");
+    print(obj.getName(), "\n");
+    
     Model m = loadModel(obj.getAbsolutePath());
     m.type = classes[currentClassIndex].getName();
     m.name = obj.getName();
@@ -80,7 +84,8 @@ class ModelLoader {
   }
 
   Model loadModel(String path) {
-    print("load model: " + path + "\n");
+    output.print("load model: " + path + "\r\n");
+    output.flush();
     PShape shape = loadShape(path);
     
     // calculate center point
