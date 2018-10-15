@@ -1,5 +1,5 @@
-String modelPath = "..\\ShapeNet_Data\\objects";
-String depthPath = "..\\ShapeNet_Data\\depths";
+String modelPath = "../ShapeNet_Data/objects";
+String depthPath = "../ShapeNet_Data/depths";
 String fragShader = "frag_depth.glsl";
 String vertShader = "vert_depth.glsl";
 

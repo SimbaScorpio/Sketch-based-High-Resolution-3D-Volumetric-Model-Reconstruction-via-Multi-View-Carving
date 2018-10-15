@@ -23,7 +23,7 @@ class ModelLoader {
   int modelIndex = 0;
 
   ModelLoader(String dataPath, String[] classes) {
-    dataPath = sketchPath() + '\\' + dataPath;
+    dataPath = sketchPath() + '/' + dataPath;
     output = createWriter("log.txt");
     output.print("dir: " + dataPath + "\r\n");
     

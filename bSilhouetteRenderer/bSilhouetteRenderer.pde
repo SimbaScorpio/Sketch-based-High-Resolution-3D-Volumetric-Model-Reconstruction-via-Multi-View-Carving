@@ -1,28 +1,38 @@
-PGraphics pg;
-PImage img;
+String input = "../ShapeNet_Data/depths";
+String output = "../ShapeNet_Data/silhouettes";
 
-boolean flag = false;
+String[] classes = {"plane"};
+
+DepthLoader loader;
+int threshold = 100;
+int index = 6;
+Depth depth;
 
 void setup() {
   size(256, 256, P3D);
-  pg = createGraphics(width, height, P3D);
-  img = loadImage("4.png");
-  pg.image(img, 0, 0);
+  loader = new DepthLoader(input, classes);
 }
 
 void draw() {
-  background(0);
-  image(img, 0, 0);
-  if (!flag) {
+  background(255);
+  
+  if (index >= 6) {
+    index = 0;
+    depth = loader.next();
+  }
+  
+  if (depth != null) {
+    String path = depth.path + "/" + index + ".png";
+    PImage img = loadImage(path);
+    image(img, 0, 0);
     loadPixels();
+    
     for (int i = 0; i < pixels.length; ++i) {
-      float r = red(pixels[i]);
-      if (r > 0) {
-        pixels[i] = color(255);
-      }
+      if (green(pixels[i]) > 0) { pixels[i] = color(255); }
     }
+    
     updatePixels();
-    save("s4.png");
-    flag = true;
+    save(sketchPath() + "/" + output + "/" + depth.type + "/" + depth.name + "/" + index + ".png");
+    index++;
   }
 }

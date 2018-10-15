@@ -2,8 +2,8 @@ import peasy.*;
 import peasy.org.apache.commons.math.*;
 import peasy.org.apache.commons.math.geometry.*;
 
-String depthPath = "..\\ShapeNet_Data\\depths";
-String cloudPath = "..\\ShapeNet_Data\\clouds";
+String depthPath = "../ShapeNet_Data/depths";
+String cloudPath = "../ShapeNet_Data/clouds";
 Boolean saveObj = false;
 
 String[] classes = {"chair"};
