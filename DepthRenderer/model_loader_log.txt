@@ -1,4 +1,0 @@
-dir: I:\Data\Sketch-based-High-Resolution-3D-Volumetric-Model-Reconstruction-via-Multi-View-Carving\DepthRenderer\..\ShapeNet_Data\objects
-load model: I:\Data\Sketch-based-High-Resolution-3D-Volumetric-Model-Reconstruction-via-Multi-View-Carving\DepthRenderer\..\ShapeNet_Data\objects\chair\2a2d705d0238396488422a4c20c0b1e6.obj
-load model: I:\Data\Sketch-based-High-Resolution-3D-Volumetric-Model-Reconstruction-via-Multi-View-Carving\DepthRenderer\..\ShapeNet_Data\objects\chair\8c4ffe44076e9d4a15f62f0f1afbe530.obj
-load model: I:\Data\Sketch-based-High-Resolution-3D-Volumetric-Model-Reconstruction-via-Multi-View-Carving\DepthRenderer\..\ShapeNet_Data\objects\chair\43d40b726c369eaaed98cca8f0ccd5f7.obj

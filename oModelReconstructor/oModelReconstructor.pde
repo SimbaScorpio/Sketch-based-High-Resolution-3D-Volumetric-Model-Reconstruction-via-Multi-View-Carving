@@ -2,19 +2,21 @@ import peasy.*;
 import peasy.org.apache.commons.math.*;
 import peasy.org.apache.commons.math.geometry.*;
 
+String depthPath = "..\\ShapeNet_Data\\depths";
+String cloudPath = "..\\ShapeNet_Data\\clouds";
+Boolean saveObj = false;
+
+String[] classes = {"chair"};
+
 PeasyCam peasyCam;
 PointCloudGenerator generator;
 PointCloud pointCloud;
 PShape cloudShape;
 
-String depthPath = "..\\ShapeNet_Data\\depths";
-String cloudPath = "..\\ShapeNet_Data\\clouds";
-Boolean saveObj = false;
-
 void setup() {
-  size(512, 512, P3D);
-  peasyCam = new PeasyCam(this, 1);
-  generator = new PointCloudGenerator(depthPath);
+  size(1024, 1024, P3D);
+  peasyCam = new PeasyCam(this, 2);
+  generator = new PointCloudGenerator(depthPath, classes);
   PointCloud pointCloud = generator.next();
   if (pointCloud != null) {
     if (saveObj)
@@ -30,6 +32,9 @@ void draw() {
   if (cloudShape != null) {
     shape(cloudShape);
   }
+  noFill();
+  stroke(255);
+  box(1);
 }
 
 void keyPressed() {

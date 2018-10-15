@@ -8,8 +8,8 @@ from multiprocessing import Pool
 file_list = 'binvox_file_locations.txt'
 data_path = '../ShapeNet_Data/objects/'
 http_path = 'http://shapenet.cs.stanford.edu/shapenet/obj-zip/ShapeNetCore.v1/'
-wanted_objects = ['chair']
-max_num = 10
+wanted_objects = ['plane']
+max_num = 10000
 
 # labels for the union of the core shapenet classes and the ikea dataset classes 
 labels = {
@@ -86,6 +86,8 @@ def download():
 				continue
 		else:
 			dictionary[obj_class] = 1
+		if os.path.exists(url[1]):
+			continue
 		final_urls.append(url)
 
 	# parallel downloading of object .obj files
@@ -101,7 +103,7 @@ def down(url):
 	lines = ""
 	with open(url[1], "r") as f:
 		for line in f:
-			if '.mtl' not in line:
+			if 'mtl' not in line:
 				lines += line
 	with open(url[1], "w") as f:
 		f.write(lines)

@@ -8,15 +8,17 @@ class PointCloudGenerator {
   PrintWriter output;
   java.io.FilenameFilter filter;
   
-  File[] classes;
-  int currentClassIndex;
-  File[] currentClassFiles;
-  int currentNameIndex;
+  HashMap<String, File[]> dir = new HashMap<String, File[]>();
+  String[] classes;
+  int classIndex = 0;
+  int modelIndex = 0;
   
-  PointCloudGenerator(String directory) {
-    directory = sketchPath() + '\\' + directory;
-    output = createWriter("cloud_generator_log.txt");
-    output.print("dir: " + directory + "\r\n");
+  PointCloudGenerator(String dataPath, String[] classes) {
+    dataPath = sketchPath() + '\\' + dataPath;
+    output = createWriter("log.txt");
+    output.print("dir: " + dataPath + "\r\n");
+    
+    this.classes = classes;
     
     filter = new java.io.FilenameFilter() {
       boolean accept(File dir, String name) {
@@ -24,51 +26,48 @@ class PointCloudGenerator {
       }
     };
     
-    File root = new File(directory);
+   File root = new File(dataPath);
     if (root.isDirectory()) {
-      classes = root.listFiles();
-      if (classes != null) {
+      File[] tempClasses = root.listFiles();
+      if (tempClasses != null) {
         for (int i = 0; i < classes.length; ++i) {
-          if (classes[i].isDirectory() && classes[i].listFiles(filter) != null) {
-            currentClassIndex = i;
-            currentClassFiles = classes[i].listFiles(filter);
-            currentNameIndex = 0;
-            break;
+          dir.put(classes[i], null);
+          for (int j = 0; j < tempClasses.length; ++j) {
+            if (classes[i].equals(tempClasses[j].getName())) {
+              dir.put(classes[i], tempClasses[j].listFiles(filter));
+            }
           }
         }
       } else {
-        output.print("empty dir: " + directory);
+        output.print("empty dir: " + dataPath);
       }
     } else {
-      output.print("error dir: " + directory);
+      output.print("error dir: " + dataPath);
     }
     output.flush();
-    output.close();
   }
   
   PointCloud next() {
-    if (currentClassFiles == null) {
-      return null;
-    }
-    File objdir = currentClassFiles[currentNameIndex];
+    if (classIndex == classes.length) return null;
+    File[] modelFiles = dir.get(classes[classIndex]);
+    if (modelFiles == null) { classIndex++; return null; }
+    
+    File objdir = modelFiles[modelIndex];
+    
+    print("class: ", classIndex+1, " / ", classes.length, "\t");
+    print("object: ", modelIndex+1, " / ", modelFiles.length, "\t");
+    print(objdir.getName(), "\n");
+    
     ArrayList<PVector> points = reconstruct(objdir.getPath());
     PointCloud cloud = new PointCloud();
     cloud.name = objdir.getName();
-    cloud.type = classes[currentClassIndex].getName();
+    cloud.type = classes[classIndex];
     cloud.points = points;
     
-    currentNameIndex += 1;
-    if (currentNameIndex == currentClassFiles.length) {
-      currentClassFiles = null;
-      currentNameIndex = -1;
-      for (int i = currentClassIndex + 1; i < classes.length; ++i) {
-        if (classes[i].isDirectory() && classes[i].listFiles(filter) != null) {
-          currentClassIndex = i;
-          currentClassFiles = classes[i].listFiles(filter);
-          currentNameIndex = 0;
-          break;
-        }
-      }
+    modelIndex++;
+    if (modelIndex == modelFiles.length) {
+      modelIndex = 0;
+      classIndex++;
     }
     return cloud;
   }
@@ -97,6 +96,9 @@ class PointCloudGenerator {
         float x = 1.0 / img.width * i - 0.5;
         float y = 1.0 / img.height * j - 0.5;
         if (z != 0.0) {
+          //x = x + random(-0.02, 0.02);
+          //y = y + random(-0.02, 0.02);
+          //z = z + random(-0.02, 0.02);
           PVector vec = new PVector(x, y, z - 0.5);
           vectors.add(vec);
         }

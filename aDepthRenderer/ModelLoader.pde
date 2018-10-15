@@ -1,30 +1,33 @@
 // Model class holding 3d informations
 class Model {
-  PShape shape;   // processing 3d shape
+  PShape shape;                   // processing 3d shape
   String name = "Default.obj";    // object name
   String type = "Default";        // object class
+  int vertexes;
   float minX, minY, minZ;
   float maxX, maxY, maxZ;
 }
 
 // Model Loader for reading .obj files
 // Usage:
-// * loader = new ModelLoader(dataPath)
-// 1. model = loader.next() enumerate all files in 'dataPath' directory
+// * loader = new ModelLoader(dataPath, classes)
+// 1. model = loader.next() enumerate all files in 'dataPath' directory specified in classes
 // 2. model = loader.loadModel(modelPath) load specific model under 'modelPath'
 class ModelLoader {
   PrintWriter output;
   java.io.FilenameFilter objFilter;
   
-  File[] classes;
-  int currentClassIndex;
-  File[] currentClassFiles;
-  int currentNameIndex;
+  HashMap<String, File[]> dir = new HashMap<String, File[]>();
+  String[] classes;
+  int classIndex = 0;
+  int modelIndex = 0;
 
-  ModelLoader(String directory) {
-    directory = sketchPath() + '\\' + directory;
-    output = createWriter("model_loader_log.txt");
-    output.print("dir: " + directory + "\r\n");
+  ModelLoader(String dataPath, String[] classes) {
+    dataPath = sketchPath() + '\\' + dataPath;
+    output = createWriter("log.txt");
+    output.print("dir: " + dataPath + "\r\n");
+    
+    this.classes = classes;
 
     objFilter = new java.io.FilenameFilter() {
       boolean accept(File dir, String name) {
@@ -32,71 +35,67 @@ class ModelLoader {
       }
     };
 
-    File root = new File(directory);
+    File root = new File(dataPath);
     if (root.isDirectory()) {
-      classes = root.listFiles();
-      if (classes != null) {
+      File[] tempClasses = root.listFiles();
+      if (tempClasses != null) {
         for (int i = 0; i < classes.length; ++i) {
-          if (classes[i].isDirectory() && classes[i].listFiles(objFilter) != null) {
-            currentClassIndex = i;
-            currentClassFiles = classes[i].listFiles(objFilter);
-            currentNameIndex = 0;
-            break;
+          dir.put(classes[i], null);
+          for (int j = 0; j < tempClasses.length; ++j) {
+            if (classes[i].equals(tempClasses[j].getName())) {
+              dir.put(classes[i], tempClasses[j].listFiles(objFilter));
+            }
           }
         }
       } else {
-        output.print("empty dir: " + directory);
+        output.print("empty dir: " + dataPath);
       }
     } else {
-      output.print("error dir: " + directory);
+      output.print("error dir: " + dataPath);
     }
     output.flush();
   }
 
   Model next() {
-    if (currentClassFiles == null) {
-      return null;
-    }
-    File obj = currentClassFiles[currentNameIndex];
+    if (classIndex == classes.length) return null;
+    File[] modelFiles = dir.get(classes[classIndex]);
+    if (modelFiles == null) { classIndex++; return null; }
     
-    print("class: ", currentClassIndex+1, " / ", classes.length, "\t");
-    print("object: ", currentNameIndex+1, " / ", currentClassFiles.length, "\t");
+    File obj = modelFiles[modelIndex];
+    
+    print("class: ", classIndex+1, " / ", classes.length, "\t");
+    print("object: ", modelIndex+1, " / ", modelFiles.length, "\t");
     print(obj.getName(), "\n");
     
     Model m = loadModel(obj.getAbsolutePath());
-    m.type = classes[currentClassIndex].getName();
+    m.type = classes[classIndex];
     m.name = obj.getName();
     
-    currentNameIndex += 1;
-    if (currentNameIndex == currentClassFiles.length) {
-      currentClassFiles = null;
-      currentNameIndex = -1;
-      for (int i = currentClassIndex + 1; i < classes.length; ++i) {
-        if (classes[i].isDirectory() && classes[i].listFiles(objFilter) != null) {
-          currentClassIndex = i;
-          currentClassFiles = classes[i].listFiles(objFilter);
-          currentNameIndex = 0;
-          break;
-        }
-      }
+    output.print("load model: " + obj.getName() + "\t");
+    output.print(m.vertexes + "\t");
+    output.print("(" + m.minX + "," + m.minY + "," + m.minZ + ")\t-\t");
+    output.print("(" + m.maxX + "," + m.maxY + "," + m.maxZ + ")\r\n");
+    output.flush();
+    
+    modelIndex++;
+    if (modelIndex == modelFiles.length) {
+      modelIndex = 0;
+      classIndex++;
     }
     return m;
   }
 
   Model loadModel(String path) {
-    output.print("load model: " + path + "\r\n");
-    output.flush();
     PShape shape = loadShape(path);
     
-    // calculate center point
-    //int vertexCount = 0;
+    int vertexCount = 0;
     float minX, minY, minZ;
     float maxX, maxY, maxZ;
     minX = minY = minZ = Float.MAX_VALUE;
     maxX = maxY = maxZ = Float.MIN_VALUE;
     for(PShape child : shape.getChildren()) {
       int n = child.getVertexCount();
-      //vertexCount += n;
+      vertexCount += n;
       for(int j = 0; j < n; ++j) {
         float x = child.getVertexX(j);
         float y = child.getVertexY(j);
@@ -134,15 +133,14 @@ class ModelLoader {
     
     Model model = new Model();
     model.shape = shape;
+    model.vertexes = vertexCount;
     model.minX = minX;
     model.minY = minY;
     model.minZ = minZ;
     model.maxX = maxX;
     model.maxY = maxY;
     model.maxZ = maxZ;
-    //print(minX + "," + maxX + "\n");
-    //print(minY + "," + maxY + "\n");
-    //print(minZ + "," + maxZ + "\n");
+    
     //model.minX = (minX - offsetX) / ratio;
     //model.minY = (minY - offsetY) / ratio;
     //model.minZ = (minZ - offsetZ) / ratio;

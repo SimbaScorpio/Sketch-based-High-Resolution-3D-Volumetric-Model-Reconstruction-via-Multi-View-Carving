@@ -3,6 +3,8 @@ String depthPath = "..\\ShapeNet_Data\\depths";
 String fragShader = "frag_depth.glsl";
 String vertShader = "vert_depth.glsl";
 
+String[] classes = {"plane"};
+
 ModelLoader modelLoader;
 Model currentModel;
 PShader shader;
@@ -13,7 +15,7 @@ void setup() {
   size(256, 256, P3D);
   pg = createGraphics(width, height, P3D);
   shader = loadShader(fragShader, vertShader);
-  modelLoader = new ModelLoader(modelPath);
+  modelLoader = new ModelLoader(modelPath, classes);
   currentModel = modelLoader.next();
 }
 
