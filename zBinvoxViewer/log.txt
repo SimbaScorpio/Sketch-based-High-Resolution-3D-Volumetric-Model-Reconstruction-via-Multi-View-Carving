@@ -1,0 +1,4 @@
+dir: I:\Science\Sketch-based-High-Resolution-3D-Volumetric-Model-Reconstruction-via-Multi-View-Carving\zBinvoxViewer/../ShapeNet_Data/test/output/
+load model: 1c08f2aa305f124262e682c9809bff14.binvox	(256,256,256)	(-0.197801,-0.401422,-0.223013)	0.802844
+load model: 105f7f51e4140ee4b6b87e72ead132ed.binvox	(256,256,256)	(-0.349169,-0.0975098,-0.344344)	0.698338
+load model: fff513f407e00e85a9ced22d91ad7027.binvox	(256,256,256)	(-0.415687,-0.0986568,-0.259752)	0.831374

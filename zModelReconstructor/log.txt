@@ -1,0 +1,14 @@
+dir: I:\Science\Sketch-based-High-Resolution-3D-Volumetric-Model-Reconstruction-via-Multi-View-Carving\zModelReconstructor/../ShapeNet_Data/depths
+class: 1 / 1	object: 1 / 14	10155655850468db78d106ce0a280f87.obj
+class: 1 / 1	object: 2 / 14	1021a0914a7207aff927ed529ad90a11.obj
+class: 1 / 1	object: 3 / 14	1026dd1b26120799107f68a9cb8e3c.obj
+class: 1 / 1	object: 4 / 14	103c9e43cdf6501c62b600da24e0965.obj
+class: 1 / 1	object: 5 / 14	105f7f51e4140ee4b6b87e72ead132ed.obj
+class: 1 / 1	object: 6 / 14	1066b65c30d153e04c3a35cee92bb95b.obj
+class: 1 / 1	object: 7 / 14	106dfe858cb8fbc2afc6b80d80a265ab.obj
+class: 1 / 1	object: 8 / 14	10aa040f470500c6a66ef8df4909ded9.obj
+class: 1 / 1	object: 9 / 14	10af5de930178a161596c26b5af806fe.obj
+class: 1 / 1	object: 10 / 14	10c7cdfdffe2243b88a89a28f04ce622.obj
+class: 1 / 1	object: 11 / 14	10cfc2090a2ade124c3a35cee92bb95b.obj
+class: 1 / 1	object: 12 / 14	10db820f0e20396a492c7ca609cb0182.obj
+class: 1 / 1	object: 13 / 14	10e0a7255d279a419751c7a6f15617f4.obj

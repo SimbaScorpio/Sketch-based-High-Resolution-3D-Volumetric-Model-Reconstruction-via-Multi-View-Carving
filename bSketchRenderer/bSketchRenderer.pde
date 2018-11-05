@@ -24,16 +24,14 @@ void draw() {
   if (depth != null) {
     String path = depth.path + "/" + index + ".png";
     PImage img = loadImage(path);
-    image(img, 0, 0);
-    loadPixels();
     
     // create a white image
-    float[] temp = new float[pixels.length];
-    for (int i = 0; i < pixels.length; ++i) {
+    float[] temp = new float[img.pixels.length];
+    for (int i = 0; i < img.pixels.length; ++i) {
       temp[i] = 255;
     }
     
-    // sobel edge detection
+    //// sobel edge detection
     for (int i = 1; i < 255; ++i) {
       for (int j = 1; j < 255; ++j) {
         int p5 = i*256 + j;
@@ -45,15 +43,15 @@ void draw() {
         int p6 = p5+1;
         int p7 = p8-1;
         int p9 = p8+1;
-        float v1 =  red(pixels[p1]);
-        float v2 =  red(pixels[p2]);
-        float v3 =  red(pixels[p3]);
-        float v4 =  red(pixels[p4]);
-        float v5 =  red(pixels[p5]);
-        float v6 =  red(pixels[p6]);
-        float v7 =  red(pixels[p7]);
-        float v8 =  red(pixels[p8]);
-        float v9 =  red(pixels[p9]);
+        float v1 =  depth(img.pixels[p1]);
+        float v2 =  depth(img.pixels[p2]);
+        float v3 =  depth(img.pixels[p3]);
+        float v4 =  depth(img.pixels[p4]);
+        float v5 =  depth(img.pixels[p5]);
+        float v6 =  depth(img.pixels[p6]);
+        float v7 =  depth(img.pixels[p7]);
+        float v8 =  depth(img.pixels[p8]);
+        float v9 =  depth(img.pixels[p9]);
         
         float vx = v1+2*v4+v7-v3-2*v6-v9;
         float vy = v1+2*v2+v3-v7-2*v8-v9;
@@ -64,12 +62,21 @@ void draw() {
     }
     
     // restore pixel values
-    for (int i = 0; i < pixels.length; ++i) {
-      pixels[i] = color(temp[i]);
+    for (int i = 0; i < img.pixels.length; ++i) {
+      img.pixels[i] = color(temp[i]);
     }
     
-    updatePixels();
+    image(img, 0, 0);
     save(sketchPath() + "/" + output + "/" + depth.type + "/" + depth.name + "/" + index + ".png");
     index++;
   }
+}
+
+float depth(color pixel) {
+  float r = red(pixel);
+  float g = green(pixel);
+  float b = blue(pixel);
+  float a = alpha(pixel);
+  float value = (a == 0) ? 51200 : ((b == 0) ? 511-r : 255-g);
+  return value/2;
 }

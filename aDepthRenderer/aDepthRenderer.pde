@@ -23,8 +23,9 @@ void draw() {
   // ensure no implicit edge smoothing operations!!!
   pg.noSmooth();
   // prepare depth rendering environment
+  background(0,0,0,0);
   pg.beginDraw();
-  pg.background(0);
+  pg.background(0,0,0,0);
   pg.shader(shader);
   pg.lights();
   

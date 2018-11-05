@@ -4,3 +4,7 @@
 ./ShapeNet_Data
 
 *.obj
+*.tar
+*.png
+*.mat
+*.binvox

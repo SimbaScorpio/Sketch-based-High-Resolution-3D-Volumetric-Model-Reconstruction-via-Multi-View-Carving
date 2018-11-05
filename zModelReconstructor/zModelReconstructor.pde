@@ -6,7 +6,7 @@ String depthPath = "../ShapeNet_Data/depths";
 String cloudPath = "../ShapeNet_Data/clouds";
 Boolean saveObj = false;
 
-String[] classes = {"chair"};
+String[] classes = {"plane"};
 
 PeasyCam peasyCam;
 PointCloudGenerator generator;
@@ -15,7 +15,7 @@ PShape cloudShape;
 
 void setup() {
   size(1024, 1024, P3D);
-  peasyCam = new PeasyCam(this, 2);
+  peasyCam = new PeasyCam(this, 100);
   generator = new PointCloudGenerator(depthPath, classes);
   PointCloud pointCloud = generator.next();
   if (pointCloud != null) {
@@ -27,13 +27,21 @@ void setup() {
 
 void draw() {
   background(0);
-  float cameraZ = ((height/2.0) / tan(PI*60.0/360.0));
-  perspective(PI/3.0, width/height, cameraZ/1000.0, cameraZ*10.0);
+
+  float fov = PI/3.0;
+  float cameraZ = (height/2.0) / tan(fov/2.0);
+  perspective(fov, float(width)/float(height), cameraZ/1000.0, cameraZ*1000.0);
+
+  scale(100);
+
   if (cloudShape != null) {
     shape(cloudShape);
   }
-  noFill();
+  
+  // bounding box
+  strokeWeight(1.0/32);
   stroke(255);
+  noFill();
   box(1);
 }
 

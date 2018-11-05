@@ -4,7 +4,6 @@ import random
 from tqdm import tqdm
 from multiprocessing import Pool
 
-
 file_list = 'binvox_file_locations.txt'
 data_path = '../ShapeNet_Data/objects/'
 http_path = 'http://shapenet.cs.stanford.edu/shapenet/obj-zip/ShapeNetCore.v1/'

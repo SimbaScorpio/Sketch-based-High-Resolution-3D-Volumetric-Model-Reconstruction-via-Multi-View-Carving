@@ -95,15 +95,19 @@ class PointCloudGenerator {
       for (int i = 0; i < img.width; ++i) {
         int loc = i + j*img.width;
         // -0.5 ~ 0.5
-        float z = red(img.pixels[loc]) / 255.0;
-        float x = 1.0 / img.width * i - 0.5;
-        float y = 1.0 / img.height * j - 0.5;
-        if (z != 0.0) {
-          //x = x + random(-0.02, 0.02);
-          //y = y + random(-0.02, 0.02);
-          //z = z + random(-0.02, 0.02);
-          PVector vec = new PVector(x, y, z - 0.5);
-          vectors.add(vec);
+        float r = red(img.pixels[loc]);
+        float g = green(img.pixels[loc]);
+        float b = blue(img.pixels[loc]);
+        float a = alpha(img.pixels[loc]);
+        if (a == 255) {
+          float z = (b == 0) ? (511.5 - r) / 512.0
+                             : (255.5 - g) / 512.0;
+          float x = 1.0 / img.width * i - 0.5;
+          float y = 1.0 / img.height * j - 0.5;
+          if (z != 0.0) {
+            PVector vec = new PVector(x, y, 0.5-z);
+            vectors.add(vec);
+          }
         }
       }
     }

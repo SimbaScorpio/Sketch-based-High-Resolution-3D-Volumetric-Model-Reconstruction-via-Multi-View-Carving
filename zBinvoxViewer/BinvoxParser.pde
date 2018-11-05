@@ -1,83 +1,15 @@
-import peasy.*;
-import java.io.*;
-PeasyCam cam;
-
-Binvox binvox;
-PShape model;
-
-void setup() {
-  size(1024, 1024, P3D);
-  //cam = new PeasyCam(this, 100);
-  model = loadShape("plane.obj");
-  try {
-    binvox = parseBinvox("plane32.binvox");
-  } catch(Exception e) { print(e); }
-}
-
-
-void draw() {
-  background(0);
-  lights();
-  
-  float fov = PI/3.0;
-  float cameraZ = (height/2.0) / tan(fov/2.0);
-  perspective(fov, float(width)/float(height), cameraZ/1000.0, cameraZ*1000.0);
-  
-  camera(35.0, 35.0, 60.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0);
-  
-  scale(40);
-  
-  shape(model);
-  
-  //noStroke();
-  //fill(255, 0, 0);
-  //sphere(0.01);
-  
-  strokeWeight(1.0/32);
-  stroke(255);
-  noFill();
-  box(1);
-  
-  //if (binvox != null) {
-  //  int d = binvox.d;
-  //  float size = 1.0 / d * binvox.scale;
-    
-  //  strokeWeight(size);
-  //  stroke(0);
-  //  fill(255);
-    
-  //  for (int x = 0; x < d; ++x) {
-  //    for (int z = 0; z < d; ++z) {
-  //      for (int y = 0; y < d; ++y) {
-  //        int index = x*d*d + z*d + y;
-  //        byte value = binvox.voxels[index];
-  //        if (value > 0) {
-  //          pushMatrix();
-  //          float px = (float(x)+0.5) * size - d/2*size;
-  //          float py = (float(y)+0.5) * size - d/2*size;
-  //          float pz = (float(z)+0.5) * size - d/2*size;
-  //          translate(px, py, pz);
-  //          box(size);
-  //          popMatrix();
-  //        }
-  //      }
-  //    }
-  //  }
-  //}
-}
-
-
 // Binvox class contains grid information from .binvox file
 class Binvox {
+  String name;
+  String type;
   byte[] voxels;     // voxel occupancy values
   int d, h, w;       // depth, width and height
   float tx, ty, tz;  // translation (not useful)
-  float scale;       // scale from unit cube
+  float scale;       // scale to unit cube
 }
 
 
 Binvox parseBinvox(String path) throws Exception {
-  path = sketchPath() + '\\' + path;
   FileInputStream binvox_file = new FileInputStream(path);
   DataInputStream binvox_data = new DataInputStream(binvox_file);
   
@@ -185,6 +117,10 @@ Binvox parseBinvox(String path) throws Exception {
   binvox.ty = ty;
   binvox.tz = tz;
   binvox.scale = scale;
+  
+  String[] blocks = path.split("\\\\");
+  binvox.name = blocks[blocks.length-1].split(".binvox")[0];
+  binvox.type = blocks[blocks.length-2];
   
   return binvox;
 }
