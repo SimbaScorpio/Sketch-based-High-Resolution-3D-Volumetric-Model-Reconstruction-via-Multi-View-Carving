@@ -3,15 +3,17 @@ import java.io.*;
 PeasyCam cam;
 
 //String voxPath = "../ShapeNet_Data/binvox256/";
-String voxPath = "../ShapeNet_Data/test/output/";
+//String voxPath = "../ShapeNet_Data/test/output/";
+String voxPath = "../Networks/sketch_to_depth/eval/chair256/";
 String objPath = "../ShapeNet_Data/objects/";
-String[] classes = {"chair", "plane"};
+String[] classes = {"threshold"};
 
 ModelLoader loader;
 Binvox binvox;
 PShape shape;
-
 PShape model;
+
+float angle = 0;
 
 void setup() {
   size(1024, 1024, P3D);
@@ -22,10 +24,11 @@ void setup() {
 
 void draw() {
   background(0);
-  directionalLight(80, 80, 80, 1, 1, 1);
-  directionalLight(80, 80, 80, 1, 1, -1);
-  directionalLight(80, 80, 80, -1, -1, 0);
-  ambientLight(102, 102, 102);
+  //directionalLight(80, 80, 80, 1, 1, 1);
+  //directionalLight(80, 80, 80, 1, 1, -1);
+  //directionalLight(80, 80, 80, -1, -1, 0);
+  //ambientLight(102, 102, 102);
+  lights();
   
   float fov = PI/3.0;
   float cameraZ = (height/2.0) / tan(fov/2.0);
@@ -33,13 +36,18 @@ void draw() {
   
   rotateX(PI);
   rotateY(PI/2);
-  scale(100);
+  scale(80);
+  
+  //rotateX(angle);
+  //rotateY(angle);
+  //rotateZ(angle);
+  angle += 0.02;
   
   drawCoord();
   if (shape != null)
     shape(shape);
   
-  shape(model);
+  //shape(model);
 }
 
 void keyPressed() {
@@ -50,6 +58,6 @@ void loadNext() {
   binvox = loader.next();
   shape = getVoxelShape(binvox);
   if (binvox != null) {
-    model = loadShape(objPath + binvox.type + "/" + binvox.name + ".obj");
+    //model = loadShape(objPath + binvox.type + "/" + binvox.name + ".obj");
   }
 }

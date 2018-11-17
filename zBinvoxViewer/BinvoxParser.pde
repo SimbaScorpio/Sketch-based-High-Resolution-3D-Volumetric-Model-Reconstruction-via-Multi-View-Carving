@@ -118,9 +118,9 @@ Binvox parseBinvox(String path) throws Exception {
   binvox.tz = tz;
   binvox.scale = scale;
   
-  String[] blocks = path.split("\\\\");
-  binvox.name = blocks[blocks.length-1].split(".binvox")[0];
-  binvox.type = blocks[blocks.length-2];
+  //String[] blocks = path.split("\\\\");
+  //binvox.name = blocks[blocks.length-1].split(".binvox")[0];
+  //binvox.type = blocks[blocks.length-2];
   
   return binvox;
 }

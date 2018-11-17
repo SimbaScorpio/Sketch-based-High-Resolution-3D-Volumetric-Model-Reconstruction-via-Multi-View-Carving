@@ -5,7 +5,7 @@ import time
 import random
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.pyplot import MultipleLocator
+from matplotlib.ticker import MultipleLocator
 
 import torch
 import torch.nn as nn
@@ -15,16 +15,21 @@ import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils, models
 
-from sketch_to_silhouette_dataset import *
-from sketch_to_silhouette_model import *
+from sketch_to_voxel_dataset import *
+from sketch_to_voxel_model import *
 
 from PIL import Image
+
+import sys
+sys.path.append('../../Scripts')
+from utils import *
+import binvox_rw
 
 # import warnings
 # warnings.filterwarnings("ignore")
 
 load = False
-load_checkpoint = './checkpoint_unet_0.002_sigm/chair256/checkpoint_100.tar'
+load_checkpoint = './checkpoint/chair256/checkpoint_120.tar'
 
 dim = 256
 classname = 'chair'
@@ -32,7 +37,7 @@ classname = 'chair'
 list_file = {'train': '../../ShapeNet_Data/sets/train/' + classname + '.txt',
 			 'valid': '../../ShapeNet_Data/sets/valid/' + classname + '.txt'}
 sketch_path = '../../ShapeNet_Data/sketches' + str(dim) + '/' + classname + '/'
-silhouette_path = '../../ShapeNet_Data/depths' + str(dim) + '/' + classname + '/'
+voxel_path = '../../ShapeNet_Data/binvox32/' + classname + '/'
 
 checkpoint_path = './checkpoint/' + classname + str(dim) + '/'
 validviews_path = './validviews/' + classname + str(dim) + '/'
@@ -45,13 +50,16 @@ if not os.path.exists(validviews_path):
 if not os.path.exists(errorgraph_path):
 	os.makedirs(errorgraph_path)
 
-dtype = torch.float
+# gpu device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+for i in range(torch.cuda.device_count()):
+	print(i, torch.cuda.get_device_name(i))
 
-num_epochs = 200
+
+num_epochs = 500
 batch_size = 64
-lr = 0.002
-step_size = 10
+lr = 0.001
+step_size = 20
 step_gamma = 0.9
 log_rate = 10	# every {log_rate} batches logs training information
 save_rate = 10	# every {save_rate} epochs saves model
@@ -69,16 +77,14 @@ def display_images(images):
 	plt.show()
 
 
-def save_silhouettes(images, epoch):
-	# images = images.numpy().astype(float)
-	for i in range(6):
-		img = np.full((dim, dim, 4), 255, dtype='uint8')
-		a, b = np.where(images[i] > threshold)
-		for x, y in zip(a, b):
-			img[x, y] = np.array([0, 0, 0, 255])
-		png = Image.fromarray(img.transpose(1, 0, 2))
-		png.save(validviews_path + 'epoch' + str(epoch) + '_' + str(i) + '.png', 'png')
-		# print(i, images[i].min(), images[i].max())
+def save_voxel(grid, epoch):
+	data = np.zeros((32, 32, 32), dtype=bool)
+	a,b,c = np.where(grid >= threshold)
+	for x, y, z in zip(a, b, c):
+		data[x, y, z] = True
+	vox = binvox_rw.Voxels(data, dims=[32,32,32], translate=[0,0,0], scale=1.0, axis_order='xyz')
+	with open(validviews_path + 'epoch' + str(epoch) + '.binvox', 'wb') as f:
+		vox.write(f)
 
 
 def save_error(train_losses, valid_losses, valid_tp_acc, valid_fp_acc, epoch):
@@ -182,13 +188,14 @@ def valid_model(model, dataloader, criterion, epoch):
 			p,_,_,_ = np.where((target>threshold))
 			n,_,_,_ = np.where((target<threshold))
 			tp_acc.append( len(tp) / len(p) )
-			fp_acc.append( len(fp) / len(n) )
+			# fp_acc.append( len(fp) / len(n) )
+			fp_acc.append( len(fp) / len(p) )
 
 		avg_loss = total_loss / len(dataloader.dataset)
 		avg_tp_acc = np.array(tp_acc).sum() / len(tp_acc)
 		avg_fp_acc = np.array(fp_acc).sum() / len(fp_acc)
 
-		save_silhouettes(output[0], epoch)
+		save_voxel(output[0], epoch)
 
 	time_elapsed = time.time() - since
 	print('Valid Loss: {:.6f} \tTPacc: {:.6f} \tFPacc: {:.6f} \tTime: {:.0f}m {:.0f}s'.format(
@@ -198,9 +205,9 @@ def valid_model(model, dataloader, criterion, epoch):
 
 if __name__ == '__main__':
 	datasets = {
-		phase: SketchToSilhouetteDataset( list_file=list_file[phase],
-										  sketch_path=sketch_path,
-										  silhouette_path=silhouette_path)
+		phase: SketchToVoxelDataset( list_file=list_file[phase],
+									 sketch_path=sketch_path,
+									 voxel_path=voxel_path)
 		for phase in ['train', 'valid']
 	}
 	dataloaders = {
@@ -208,13 +215,18 @@ if __name__ == '__main__':
 		for phase in ['train', 'valid']
 	}
 
-	model = SketchToSilhouetteModel().to(device)
+	# sketch, voxel = next(iter(dataloaders['train']))
+	# display_images(sketch[0].numpy())
+	# save_voxel(voxel[0].numpy(), 0)
+
+	model = SketchToVoxelModel().to(device)
 	model.apply(weights_init)
 	criterion = nn.MSELoss()
 	optimizer = optim.Adam(model.parameters(), lr=lr, betas=(0.9, 0.999))
+	# optimizer = optim.RMSprop(model.parameters(), lr=lr)
 	scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=step_gamma)
 
-	best_loss = 1.0
+	best_loss = 100000.0
 	train_losses, valid_losses = [], []
 	valid_tp_acc, valid_fp_acc = [], []
 	total_train_time = 0
