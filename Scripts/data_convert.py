@@ -12,7 +12,7 @@ from multiprocessing import Pool
 dim = 256
 binvox_path = '../ShapeNet_Data/binvox32/'
 depths_path = '../ShapeNet_Data/depths' + str(dim) + '/'
-wanted_classes = ['chair', 'plane']
+wanted_classes = ['table']
 
 
 def call(info):

@@ -15,7 +15,7 @@ output_path = '../ShapeNet_Data/sketches' + str(dim) + '/'
 data_type = ['mat', 'png']
 # data_type = ['mat']
 # data_type = ['png']
-wanted_classes = ['plane']
+wanted_classes = ['table']
 
 threshold = 100
 
@@ -26,9 +26,10 @@ def call_mat(info):
 		os.makedirs(save_path)
 
 	depths = sio.loadmat(info['depth_mat'])['depths']
+	depths[np.where(depths == dim)] = 99999
 	sketches = np.zeros((6, dim, dim), dtype=bool)
 	for axis in range(6):
-		padded = np.pad(depths[axis], 1, 'constant', constant_values=dim)
+		padded = np.pad(depths[axis], 1, 'constant', constant_values=99999)
 		sx = ndimage.sobel(padded, axis=0, mode='constant')
 		sy = ndimage.sobel(padded, axis=1, mode='constant')
 		sob = np.hypot(sx, sy)

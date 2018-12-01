@@ -1,0 +1,4 @@
+--Train--
+min_train_loss: 0.00032803845162272794    min_valid_loss: 0.0005701170827181923    max_valid_tp_acc: 0.928371767713687    min_valid_fp_acc: 0.022785451254911035
+--Valid--
+threshold: 0.22    iou: 0.8530569945573432    tp: 0.9672617833383318

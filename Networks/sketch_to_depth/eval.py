@@ -88,64 +88,69 @@ def call(info):
 
 	silhouettes = sio.loadmat(depth_path + filename + '/silhouettes.mat')['silhouettes']
 	save_voxel(output, silhouettes, output_path + str(info['index']) + '.binvox')
-	# path = output_path + str(i) + '.mat'
-	# data = np.zeros((dim, dim, dim), dtype=bool)
-	# for axis in range(6):
-	# 	a, b = np.where(silhouettes[axis] == True)
-	# 	for x, y in zip(a, b):
-	# 		m, n, p = img2grid(x, y, output[axis, x, y], dim, axis)
-	# 		data[m, n, p] = True
-	# vox = binvox_rw.Voxels(data, dims=[dim,dim,dim], translate=[0,0,0], scale=1.0, axis_order='xyz')
-	# with open(path, 'wb') as f:
-	# 	vox.write(f)
 
 
 def save_output(outputs):
 	with open(list_file, 'r') as f:
 		filenames = np.array(f.readlines())
 
-	output_path = eval_path + 'prediction/'
+
+	output_path = eval_path + 'groundtruth2/'
 	if not os.path.exists(output_path):
 		os.makedirs(output_path)
 
-	infos = []
-	for i in tqdm(range(len(filenames))):
-		filename = filenames[i].rstrip('\n')
-		if _gt:
-			# save sketch ground truth
-			output_path = eval_path + 'groundtruth/'
-			if not os.path.exists(output_path):
-				os.makedirs(output_path)
+	i = 13
+	filename = filenames[i].rstrip('\n')
+	target = sio.loadmat(depth_path + filename + '/depths.mat')['depths']
+	target = target.astype(np.uint16)
+	info = {'filename': filename, 'index': i, 'output': target, 'output_path': output_path}
+	call(info)
 
-			sketches = sio.loadmat(sketch_path + filename + '/sketches.mat')['sketches']
-			for axis in range(6):
-				sideview = np.full((dim, dim, 4), 255, dtype='uint8')
-				sideview[np.where(sketches[axis]==True)] = np.array([255, 255, 255, 255])
-				sideview[np.where(sketches[axis]==False)] = np.array([0, 0, 0, 255])
-				png = Image.fromarray(sideview.transpose(1, 0, 2))
-				png.save(output_path + str(i) + '_sketch_' + str(axis) + '.png', 'png')
+	# for i in tqdm(range(len(filenames))):
+	# 	filename = filenames[i].rstrip('\n')
+	# 	if _gt:
+	# 		# save sketch ground truth
+	# 		output_path = eval_path + 'groundtruth/'
+	# 		if not os.path.exists(output_path):
+	# 			os.makedirs(output_path)
 
-			# save voxel ground truth
-			target = sio.loadmat(depth_path + filename + '/depths.mat')['depths']
-			for axis in range(6):
-				depth = render_depth(target[axis], dim)
-				png = Image.fromarray(depth.transpose(1, 0, 2))
-				png.save(output_path + str(i) + '_depth_' + str(axis) + '.png', 'png')
-		infos.append({'filename': filename, 'index': i, 'output': outputs[i], 'output_path': output_path})
+	# 		sketches = sio.loadmat(sketch_path + filename + '/sketches.mat')['sketches']
+	# 		for axis in range(6):
+	# 			sideview = np.full((dim, dim, 4), 255, dtype='uint8')
+	# 			sideview[np.where(sketches[axis]==True)] = np.array([255, 255, 255, 255])
+	# 			sideview[np.where(sketches[axis]==False)] = np.array([0, 0, 0, 255])
+	# 			png = Image.fromarray(sideview.transpose(1, 0, 2))
+	# 			png.save(output_path + str(i) + '_sketch_' + str(axis) + '.png', 'png')
 
-	pool = Pool()
-	with tqdm(total = len(infos)) as pbar:
-		for i, _ in tqdm(enumerate(pool.imap_unordered(call, infos))):
-			pbar.update()
+	# 		# save voxel ground truth
+	# 		target = sio.loadmat(depth_path + filename + '/depths.mat')['depths']
+	# 		for axis in range(6):
+	# 			depth = render_depth(target[axis], dim)
+	# 			png = Image.fromarray(depth.transpose(1, 0, 2))
+	# 			png.save(output_path + str(i) + '_depth_' + str(axis) + '.png', 'png')
+
+	# output_path = eval_path + 'prediction/'
+	# if not os.path.exists(output_path):
+	# 	os.makedirs(output_path)
+
+	# infos = []
+	# for i in tqdm(range(len(filenames))):
+	# 	filename = filenames[i].rstrip('\n')
+	# 	infos.append({'filename': filename, 'index': i, 'output': outputs[i], 'output_path': output_path})
+
+	# pool = Pool()
+	# with tqdm(total = len(infos)) as pbar:
+	# 	for i, _ in tqdm(enumerate(pool.imap_unordered(call, infos))):
+	# 		pbar.update()
 
 
 
 if __name__ == '__main__':
-	dataset = SketchToDepthDataset(list_file=list_file, sketch_path=sketch_path, depth_path=depth_path, silhouette_path=silhouette_path)
-	dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=4)
-	model = SketchToDepthModel().to(device)
+	# dataset = SketchToDepthDataset(list_file=list_file, sketch_path=sketch_path, depth_path=depth_path, silhouette_path=silhouette_path)
+	# dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=4)
+	# model = SketchToDepthModel().to(device)
 
-	train_losses, valid_losses = load_model(model, load_checkpoint)
+	# train_losses, valid_losses = load_model(model, load_checkpoint)
 	# save_loss(train_losses, valid_losses)
 
 	# outputs = []
@@ -158,3 +163,6 @@ if __name__ == '__main__':
 	# 			outputs.append((output[i]*dim).astype('uint16'))
 	
 	# save_output(outputs)
+
+
+	save_output([])

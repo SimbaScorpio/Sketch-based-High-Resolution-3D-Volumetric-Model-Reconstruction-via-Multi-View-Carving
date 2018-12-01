@@ -2,11 +2,12 @@ import peasy.*;
 import java.io.*;
 PeasyCam cam;
 
-//String voxPath = "../ShapeNet_Data/binvox256/";
-//String voxPath = "../ShapeNet_Data/test/output/";
-String voxPath = "../Networks/sketch_to_depth/eval/chair256/";
-String objPath = "../ShapeNet_Data/objects/";
-String[] classes = {"threshold"};
+//String voxPath = "../../ShapeNet_Data/binvox256/";
+//String voxPath = "../../ShapeNet_Data/test/output/";
+//String voxPath = "../../Networks/sketch_to_voxel/validviews/";
+String voxPath = "../../Networks/sketch_to_depth/eval/chair256/";
+String objPath = "../../ShapeNet_Data/objects/";
+String[] classes = {"prediction"};
 
 ModelLoader loader;
 Binvox binvox;
@@ -17,9 +18,9 @@ float angle = 0;
 
 void setup() {
   size(1024, 1024, P3D);
-  cam = new PeasyCam(this, 100);
+  cam = new PeasyCam(this, 120);
   loader = new ModelLoader(voxPath, classes);
-  loadNext();
+  load(true);
 }
 
 void draw() {
@@ -43,7 +44,7 @@ void draw() {
   //rotateZ(angle);
   angle += 0.02;
   
-  drawCoord();
+  //drawCoord();
   if (shape != null)
     shape(shape);
   
@@ -51,11 +52,16 @@ void draw() {
 }
 
 void keyPressed() {
-  loadNext();
+  if (keyCode == RIGHT || keyCode == DOWN)
+    load(true);
+  if (keyCode == LEFT || keyCode == UP)
+    load(false);
 }
 
-void loadNext() {
-  binvox = loader.next();
+void load(boolean flag) {
+  Binvox binvox = null;
+  if (flag == true) binvox = loader.next();
+  if (flag == false) binvox = loader.prev();
   shape = getVoxelShape(binvox);
   if (binvox != null) {
     //model = loadShape(objPath + binvox.type + "/" + binvox.name + ".obj");

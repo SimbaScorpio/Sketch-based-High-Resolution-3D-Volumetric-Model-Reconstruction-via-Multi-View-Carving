@@ -8,7 +8,7 @@ valid_path = '../ShapeNet_Data/sets/valid/'
 test_path = '../ShapeNet_Data/sets/test/'
 data_path = '../ShapeNet_Data/objects/'
 
-wanted_objects = ['chair', 'table', 'plane']
+wanted_objects = ['table']
 
 if not os.path.exists(train_path):
 	os.makedirs(train_path)
@@ -50,5 +50,5 @@ for objclass in wanted_objects:
 
 
 # chair 4232 604 1210
-# table 4867 695 1391
+# table 4865 695 1391
 # plane 2800 400 800

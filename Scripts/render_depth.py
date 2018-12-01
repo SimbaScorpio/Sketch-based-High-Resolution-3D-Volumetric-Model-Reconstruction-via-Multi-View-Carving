@@ -14,7 +14,7 @@ output_path = '../ShapeNet_Data/depths' + str(dim) + '/'
 data_type = ['mat', 'png']
 # data_type = ['mat']
 # data_type = ['png']
-wanted_classes = ['plane']
+wanted_classes = ['table']
 
 
 def call_mat(info):

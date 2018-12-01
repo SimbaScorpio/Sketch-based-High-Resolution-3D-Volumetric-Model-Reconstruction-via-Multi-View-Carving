@@ -1,9 +1,10 @@
 from __future__ import print_function, division
-
 import os
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.io as sio
+
 from tqdm import tqdm
 from matplotlib.ticker import MultipleLocator
 from torch.utils.data import Dataset, DataLoader
@@ -13,8 +14,16 @@ from PIL import Image
 
 # import warnings
 # warnings.filterwarnings("ignore")
+random.seed(941112)
 
-load_checkpoint = './checkpoint_unet_0.002_sigm/chair256/checkpoint_100.tar'
+load_checkpoints = ['./checkpoint_unet_0.002_sigm/chair256/best_checkpoint.tar',
+					'./checkpoint_unet_0.001_sigm_bce/chair256/best_checkpoint.tar']
+					#'./checkpoint_unet_0.002_sigm/chair256/checkpoint_100.tar',
+					#'./checkpoint_unet_0.002_sigm/chair256/checkpoint_120.tar',
+					#'./checkpoint_unet_0.002_sigm/chair256/checkpoint_140.tar',
+					#'./checkpoint_unet_0.002_sigm/chair256/checkpoint_160.tar',
+					#'./checkpoint_unet_0.002_sigm/chair256/checkpoint_180.tar',
+					#'./checkpoint_unet_0.001_sigm/plane256/best_checkpoint.tar']
 
 dim = 256
 classname = 'chair'
@@ -24,7 +33,6 @@ sketch_path = '../../ShapeNet_Data/sketches' + str(dim) + '/' + classname + '/'
 silhouette_path = '../../ShapeNet_Data/depths' + str(dim) + '/' + classname + '/'
 
 eval_path = './eval/' + classname + str(dim) + '/'
-
 if not os.path.exists(eval_path):
 	os.makedirs(eval_path)
 
@@ -32,52 +40,71 @@ batch_size = 64
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 _gt = False
-thresholds = [0.5]
+_threshold = False			# using fixed threshold
+fix_threshold = 0.5		# fixed threshold
+step = 0.01					# if not fixed, then use estimated threshold
+
+w_tp, w_iou = 1.0, 1.0
 
 
-def load_model(model, path):
-	info = torch.load(path)
-	model.load_state_dict(info['model_state_dict'])
-	train_losses = info['train_losses']
-	valid_losses = info['valid_losses']
-	valid_tp_acc = info['valid_tp_acc']
-	valid_fp_acc = info['valid_fp_acc']
-	return train_losses, valid_losses, valid_tp_acc, valid_fp_acc
-
-
-def save_loss(train_losses, valid_losses, valid_tp_acc, valid_fp_acc):
+def save_loss(train_losses, valid_losses, valid_tp_acc, valid_iou):
 	_, ax1 = plt.subplots()
 	ax2 = ax1.twinx()
 	ax1.plot(np.arange(len(train_losses)), train_losses, 'blue')
 	ax1.plot(np.arange(len(valid_losses)), valid_losses, 'green')
 	ax2.plot(np.arange(len(valid_tp_acc)), valid_tp_acc, 'red')
-	ax2.plot(np.arange(len(valid_fp_acc)), valid_fp_acc, 'violet')
+	ax2.plot(np.arange(len(valid_iou)), valid_iou, 'violet')
 	ax1.set_xlabel('epoch')
 	ax1.set_ylabel('loss')
 	ax2.set_ylabel('valid accuracy')
-	ax1.yaxis.set_major_locator(MultipleLocator(0.0001))
+	# ax1.yaxis.set_major_locator(MultipleLocator(0.0001))
 	ax2.yaxis.set_major_locator(MultipleLocator(0.05))
 	plt.tight_layout()
 	plt.grid()
 	plt.savefig(eval_path + 'graph.png')
 	plt.close()
-	print('train loss: ', np.array(train_losses).min())
-	print('valid loss: ', np.array(valid_losses).min())
-	print('valid tp: ', np.array(valid_tp_acc).max())
-	print('train fp: ', np.array(valid_fp_acc).min())
 
 
-def save_output(outputs):
+def save_silhouette(targets, threshold, path, index):
+	for axis in range(6):
+		sideview = np.full((dim, dim, 4), 255, dtype='uint8')
+		sideview[np.where(targets[axis]>=threshold)] = np.array([255, 255, 255, 255])
+		sideview[np.where(targets[axis]<threshold)] = np.array([0, 0, 0, 255])
+		png = Image.fromarray(sideview.transpose(1, 0, 2))
+		png.save(path + str(index) + '_' + str(axis) + '.png', 'png')
+	silhouettes = np.zeros((6, dim, dim), dtype=bool)
+	silhouettes[np.where(targets>=threshold)] = True
+	sio.savemat(path + str(index) + '.mat', {'silhouettes': silhouettes})
+
+
+def calculate_loss(outputs, targets, threshold):
+	total_iou, total_tp = 0, 0
+	for i in range(len(targets)):
+		predict = outputs[i]
+		target = targets[i]
+		s, x, y = np.where( (predict>=threshold)&(target==True) )
+		u, x, y = np.where( (predict>=threshold)|(target==True) )
+		a, x, y = np.where(target==True)
+		iou = len(s) / len(u)
+		tp = len(s) / len(a)
+		total_iou += iou
+		total_tp += tp
+	avg_iou = total_iou / len(targets)
+	avg_tp = total_tp / len(targets)
+	return avg_iou, avg_tp
+
+
+def save_output(outputs, info):
 	with open(list_file, 'r') as f:
 		filenames = np.array(f.readlines())
 
-	ious = [0. for i in range(len(thresholds))]
-	tps = [0. for i in range(len(thresholds))]
-
+	# save gt files
+	targets = []
+	print('saving groundtruths...')
 	for i in tqdm(range(len(filenames))):
 		filename = filenames[i].rstrip('\n')
-		
-		targets = sio.loadmat(silhouette_path + filename + '/silhouettes.mat')['silhouettes']
+		target = sio.loadmat(silhouette_path + filename + '/silhouettes.mat')['silhouettes']
+		targets.append(target)
 		if _gt:
 			# save sketch ground truth
 			output_path = eval_path + 'groundtruth/'
@@ -90,41 +117,57 @@ def save_output(outputs):
 				sideview[np.where(sketches[axis]==True)] = np.array([255, 255, 255, 255])
 				sideview[np.where(sketches[axis]==False)] = np.array([0, 0, 0, 255])
 				png = Image.fromarray(sideview.transpose(1, 0, 2))
-				png.save(output_path + str(i) + '_sketch_' + str(axis) + '.png', 'png')
+				png.save(output_path + str(i) + '_' + str(axis) + '_sketch' + '.png', 'png')
 
 			# save silhouette ground truth
-			for axis in range(6):
-				sideview = np.full((dim, dim, 4), 255, dtype='uint8')
-				sideview[np.where(targets[axis]==True)] = np.array([255, 255, 255, 255])
-				sideview[np.where(targets[axis]==False)] = np.array([0, 0, 0, 255])
-				png = Image.fromarray(sideview.transpose(1, 0, 2))
-				png.save(output_path + str(i) + '_mask_' + str(axis) + '.png', 'png')
+			save_silhouette(target, 0.5, output_path, i)
 
-		# save predictions according to different thresholds
-		predicts = outputs[i]
-		for j in range(len(thresholds)):
-			t = thresholds[j]
-			output_path = eval_path + 'threshold_' + str(t) + '/'
-			if not os.path.exists(output_path):
-				os.makedirs(output_path)
-			for axis in range(6):
-				sideview = np.full((dim, dim, 4), 255, dtype='uint8')
-				sideview[np.where(predicts[axis]>t)] = np.array([255, 255, 255, 255])
-				sideview[np.where(predicts[axis]<=t)] = np.array([0, 0, 0, 255])
-				png = Image.fromarray(sideview.transpose(1, 0, 2))
-				png.save(output_path + str(i) + '_pred_' + str(axis) + '.png', 'png')
-			# calculate error
-			s, x, y = np.where( (predicts>t)&(targets==True) )
-			a, x, y = np.where(targets==True)
-			b, x, y = np.where(predicts>t)
-			iou = len(s) / (len(a) + len(b) - len(s))
-			tp = len(s) / len(a)
-			ious[j] = ious[j] + iou / len(filenames)
-			tps[j] = tps[j] + tp / len(filenames)
+	best_threshold = 0
+	best_avg_iou = 0
+	best_avg_tp = 0
+	if _threshold:
+		# use pre-defined threshold
+		avg_iou, avg_tp = calculate_loss(outputs, targets, fix_threshold)
+		best_avg_iou = avg_iou
+		best_avg_tp = avg_tp
+		best_threshold = fix_threshold
+	else:
+		# enumerate threshold to find the best one
+		print('estimating threshold...')
+		# for t in tqdm(range(1, int(1.0/step))):
+		for t in tqdm(range(1, 50)):
+			threshold = step*t
+			avg_iou, avg_tp = calculate_loss(outputs, targets, threshold)
+			if (avg_iou*w_iou + avg_tp*w_tp > best_avg_iou*w_iou + best_avg_tp*w_tp):
+				best_avg_iou = avg_iou
+				best_avg_tp = avg_tp
+				best_threshold = threshold
 
+	# save predictions base on best estimated threshold
+	output_path = eval_path + 'threshold_' + str(best_threshold) + '/'
+	if not os.path.exists(output_path):
+		os.makedirs(output_path)
+	print('saving silhouettes...')
+	for i in tqdm(range(len(targets))):
+		predict = outputs[i]
+		save_silhouette(predict, best_threshold, output_path, i)
+
+
+	train_losses = info['train_losses']
+	valid_losses = info['valid_losses']
+	valid_tp_acc = info['valid_tp_acc']
+	valid_fp_acc = info['valid_fp_acc']
+	# valid_iou = info['valid_iou']
+	save_loss(train_losses, valid_losses, valid_tp_acc, valid_fp_acc)
+
+	min_train_loss = np.array(train_losses).min()
+	min_valid_loss = np.array(valid_losses).min()
+	max_valid_tp_acc = np.array(valid_tp_acc).max()
+	min_valid_fp_acc = np.array(valid_fp_acc).min()
+	# max_valid_iou = np.array(valid_iou).max()
 	with open(eval_path + 'error.txt', 'w+') as f:
-		for i in range(len(thresholds)):
-			f.write(str(thresholds[i]) + ' iou: ' + str(ious[i]) + '    tp: ' + str(tps[i]) + '\r\n')
+		f.write('--Train--\r\n' + 'min_train_loss: ' + str(min_train_loss) + '    min_valid_loss: ' + str(min_valid_loss) + '    max_valid_tp_acc: ' + str(max_valid_tp_acc) + '    min_valid_fp_acc: ' + str(min_valid_fp_acc) + '\r\n')
+		f.write('--Valid--\r\n' + 'threshold: ' + str(best_threshold) + '    iou: ' + str(best_avg_iou) + '    tp: ' + str(best_avg_tp) + '\r\n')
 
 
 if __name__ == '__main__':
@@ -132,16 +175,22 @@ if __name__ == '__main__':
 	dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=4)
 	model = SketchToSilhouetteModel().to(device)
 
-	train_losses, valid_losses, valid_tp_acc, valid_fp_acc = load_model(model, load_checkpoint)
-	save_loss(train_losses, valid_losses, valid_tp_acc, valid_fp_acc)
-
-	outputs = []
-	with torch.no_grad():
-		model.eval()
-		for batch_idx, (data, target) in enumerate(dataloader):
-			data, target = data.to(device), target.to(device)
-			output = model(data).cpu().numpy()
-			for i in range(len(output)):
-				outputs.append(output[i])
-	
-	save_output(outputs)
+	# ensemble different models together making silhouette probability much more stable
+	final_outputs = []
+	for i in range(len(load_checkpoints)):
+		info = torch.load(load_checkpoints[i])
+		model.load_state_dict(info['model_state_dict'])
+		outputs = []
+		with torch.no_grad():
+			model.eval()
+			for batch_idx, (data, target) in enumerate(dataloader):
+				data, target = data.to(device), target.to(device)
+				output = model(data).cpu().numpy()
+				outputs.extend(output)
+		if len(final_outputs) == 0:
+			final_outputs = np.array(outputs)
+		else:
+			final_outputs += np.array(outputs)
+			
+	final_outputs /= float(len(load_checkpoints))
+	save_output(outputs, info)

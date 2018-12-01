@@ -1,10 +1,10 @@
-PShape getVoxelShape(Binvox vox) {
-  if (vox == null) return null;
+PShape getVoxelShape(Binvox binvox) {
+  if (binvox == null) return null;
   int d = binvox.d;
   float size = 1.0 / d * binvox.scale;
   
   noStroke();
-  fill(255, 255, 255, 128);
+  fill(255, 255, 255, 200);
   
   byte[][][] grid = new byte[d][d][d];
   for (int x = 0; x < d; ++x) {

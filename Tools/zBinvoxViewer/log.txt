@@ -1,0 +1,26 @@
+dir: I:\Science\Sketch-based-High-Resolution-3D-Volumetric-Model-Reconstruction-via-Multi-View-Carving\Tools\zBinvoxViewer/../../Networks/sketch_to_depth/eval/chair256/
+load model: 0.binvox	(256,256,256)	(0.0,0.0,0.0)	1.0
+load model: 1.binvox	(256,256,256)	(0.0,0.0,0.0)	1.0
+load model: 10.binvox	(256,256,256)	(0.0,0.0,0.0)	1.0
+load model: 1.binvox	(256,256,256)	(0.0,0.0,0.0)	1.0
+load model: 10.binvox	(256,256,256)	(0.0,0.0,0.0)	1.0
+load model: 100.binvox	(256,256,256)	(0.0,0.0,0.0)	1.0
+load model: 101.binvox	(256,256,256)	(0.0,0.0,0.0)	1.0
+load model: 100.binvox	(256,256,256)	(0.0,0.0,0.0)	1.0
+load model: 101.binvox	(256,256,256)	(0.0,0.0,0.0)	1.0
+load model: 102.binvox	(256,256,256)	(0.0,0.0,0.0)	1.0
+load model: 103.binvox	(256,256,256)	(0.0,0.0,0.0)	1.0
+load model: 104.binvox	(256,256,256)	(0.0,0.0,0.0)	1.0
+load model: 105.binvox	(256,256,256)	(0.0,0.0,0.0)	1.0
+load model: 106.binvox	(256,256,256)	(0.0,0.0,0.0)	1.0
+load model: 105.binvox	(256,256,256)	(0.0,0.0,0.0)	1.0
+load model: 104.binvox	(256,256,256)	(0.0,0.0,0.0)	1.0
+load model: 105.binvox	(256,256,256)	(0.0,0.0,0.0)	1.0
+load model: 106.binvox	(256,256,256)	(0.0,0.0,0.0)	1.0
+load model: 107.binvox	(256,256,256)	(0.0,0.0,0.0)	1.0
+load model: 108.binvox	(256,256,256)	(0.0,0.0,0.0)	1.0
+load model: 109.binvox	(256,256,256)	(0.0,0.0,0.0)	1.0
+load model: 11.binvox	(256,256,256)	(0.0,0.0,0.0)	1.0
+load model: 110.binvox	(256,256,256)	(0.0,0.0,0.0)	1.0
+load model: 111.binvox	(256,256,256)	(0.0,0.0,0.0)	1.0
+load model: 112.binvox	(256,256,256)	(0.0,0.0,0.0)	1.0

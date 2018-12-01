@@ -27,8 +27,8 @@ from PIL import Image
 # import warnings
 # warnings.filterwarnings("ignore")
 
-load = False
-load_checkpoint = './checkpoint/chair256/checkpoint_120.tar'
+load = True
+load_checkpoint = './checkpoint_single_sigm_0.002_l2/chair256/checkpoint_120.tar'
 
 dim = 256
 classname = 'chair'
@@ -75,7 +75,7 @@ def display_images(images):
 
 
 def save_depths(images, masks, epoch):
-	images *= dim
+	images = images*(dim-1.0)
 	for i in range(6):
 		img = render_depth(images[i], dim)
 		a, b = np.where(masks[i] < 1)
@@ -167,7 +167,8 @@ def train_model(model, dataloader, criterion, optimizer, epoch):
 
 def valid_model(model, dataloader, criterion, epoch):
 	since = time.time()
-	total_loss = 0
+	total_loss, total_l1loss = 0, 0
+	l1criterion = nn.L1Loss()
 	print('Validing...')
 
 	with torch.no_grad():
@@ -179,15 +180,17 @@ def valid_model(model, dataloader, criterion, epoch):
 			target = torch.mul(target, mask)
 			loss = criterion(output, target)
 			total_loss += loss.item()
+			l1loss = l1criterion(output, target) # used for uniform comparison
+			total_l1loss += l1loss.item()
 			output = output.cpu().numpy()
 
-		avg_loss = total_loss / len(dataloader.dataset)
-
-		save_depths(output[0], mask[0], epoch)
+	avg_loss = total_loss / len(dataloader.dataset)
+	avg_l1loss = total_l1loss / len(dataloader)
+	save_depths(output[0], mask[0], epoch)
 
 	time_elapsed = time.time() - since
-	print('Valid Loss: {:.6f} \tTime: {:.0f}m {:.0f}s'.format(
-		avg_loss*error_big, time_elapsed//60, time_elapsed%60))
+	print('Valid Loss: {:.6f} \tL1 Loss: {:.6f} \tTime: {:.0f}m {:.0f}s'.format(
+		avg_loss*error_big, avg_l1loss, time_elapsed//60, time_elapsed%60))
 	return avg_loss, time_elapsed
 
 
@@ -244,4 +247,3 @@ if __name__ == '__main__':
 		time_elapsed = total_train_time + total_valid_time
 		print('Time elapsed: {:.0f}m {:.0f}s \t[ Train: {:.0f}m {:.0f}s, Valid: {:.0f}m {:.0f}s ]'.format(
 			time_elapsed//60, time_elapsed%60, total_train_time//60, total_train_time%60, total_valid_time//60, total_valid_time%60))
-

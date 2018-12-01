@@ -46,7 +46,9 @@ class SketchToDepthDataset(Dataset):
 			sketches[i] = crop
 
 		# depth value normalize to [0, 1]
-		depths /= dim
+		depths = depths / (dim-1.0)
+		# depth value normalize to [-1, 1]
+		# depths = depths / ((dim-1.0)/2.0) - 1.0
 
 		# totensor
 		sketches = torch.from_numpy(sketches).type(torch.FloatTensor)

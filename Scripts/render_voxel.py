@@ -12,7 +12,7 @@ from subprocess import call
 dimension = 256
 obj_path = '../ShapeNet_Data/objects/'
 vox_path = '../ShapeNet_Data/binvox' + str(dimension) + '/'
-wanted_objects = ['chair']
+wanted_objects = ['table']
 
 
 if not os.path.exists(vox_path):
